@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>JobScope · AI Job Hunting Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0b1020;
+    --bg-soft: #111831;
+    --card: #161f3d;
+    --card-2: #1b2547;
+    --border: rgba(255, 255, 255, 0.08);
+    --text: #e8ecf8;
+    --muted: #93a0c4;
+    --accent: #6c8cff;
+    --accent-2: #9d6cff;
+    --green: #3fd9a3;
+    --red: #ff6b81;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: radial-gradient(1200px 600px at 80% -10%, rgba(108,140,255,.18), transparent 60%),
+                radial-gradient(900px 500px at -10% 30%, rgba(157,108,255,.14), transparent 60%),
+                var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+
+  header { padding: 28px 0; display: flex; align-items: center; justify-content: space-between; }
+  .logo { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 20px; letter-spacing: -.02em; }
+  .logo-badge {
+    width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    font-size: 18px;
+  }
+  .api-status { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .dot.ok { background: var(--green); box-shadow: 0 0 10px var(--green); }
+
+  .hero { text-align: center; padding: 36px 0 44px; }
+  .hero h1 {
+    font-size: clamp(30px, 5vw, 48px); font-weight: 800; letter-spacing: -.03em; line-height: 1.1;
+  }
+  .hero h1 span {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero p { color: var(--muted); margin-top: 14px; font-size: 17px; max-width: 620px; margin-inline: auto; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: linear-gradient(180deg, var(--card), var(--bg-soft));
+    border: 1px solid var(--border); border-radius: var(--radius); padding: 24px;
+  }
+  .card h2 { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .card .sub { color: var(--muted); font-size: 13px; margin-bottom: 16px; }
+  .step {
+    width: 26px; height: 26px; border-radius: 8px; display: inline-grid; place-items: center;
+    font-size: 13px; font-weight: 700; color: #fff;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  }
+
+  .drop {
+    border: 1.5px dashed rgba(255,255,255,.18); border-radius: 12px; padding: 26px 16px;
+    text-align: center; color: var(--muted); font-size: 14px; cursor: pointer; transition: .2s;
+  }
+  .drop:hover, .drop.drag { border-color: var(--accent); background: rgba(108,140,255,.06); color: var(--text); }
+  .drop strong { color: var(--accent); }
+
+  .meta-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 12px; }
+  input[type="text"], textarea, input[type="number"] {
+    width: 100%; background: var(--card-2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 10px; padding: 11px 13px; font: inherit; font-size: 14px; outline: none; transition: .15s;
+  }
+  input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(108,140,255,.15); }
+  textarea { resize: vertical; min-height: 84px; }
+
+  .btn {
+    border: 0; border-radius: 10px; padding: 12px 18px; font: inherit; font-weight: 600; font-size: 14px;
+    cursor: pointer; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    transition: .15s; display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn:hover { filter: brightness(1.12); transform: translateY(-1px); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+  .btn.ghost { background: var(--card-2); border: 1px solid var(--border); color: var(--text); }
+  .row { display: flex; gap: 10px; margin-top: 14px; align-items: center; flex-wrap: wrap; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--card-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 20px;
+    font-size: 14px; opacity: 0; transition: .3s; z-index: 50; max-width: 90vw;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.ok { border-color: rgba(63,217,163,.5); }
+  .toast.err { border-color: rgba(255,107,129,.5); }
+
+  .full { grid-column: 1 / -1; }
+  .answer {
+    background: var(--card-2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px; margin-top: 16px; font-size: 14.5px; line-height: 1.65; white-space: pre-wrap; display: none;
+  }
+  .sources { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .chip {
+    font-size: 12px; padding: 6px 12px; border-radius: 999px;
+    background: rgba(108,140,255,.12); border: 1px solid rgba(108,140,255,.3); color: #b9c7ff;
+  }
+
+  .matches { display: grid; gap: 12px; margin-top: 16px; }
+  .match {
+    background: var(--card-2); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px;
+    display: grid; gap: 8px;
+  }
+  .match-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .match-title { font-weight: 700; font-size: 15px; }
+  .match-meta { color: var(--muted); font-size: 13px; }
+  .rank {
+    font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px;
+    background: rgba(63,217,163,.12); border: 1px solid rgba(63,217,163,.35); color: var(--green);
+  }
+  .bar { height: 6px; border-radius: 999px; background: rgba(255,255,255,.07); overflow: hidden; }
+  .bar > i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--green)); }
+  .match .why { font-size: 13.5px; color: var(--muted); line-height: 1.55; }
+  .spinner {
+    width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff;
+    border-radius: 50%; animation: spin .7s linear infinite; display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .busy .spinner { display: inline-block; }
+  label.check { display: flex; gap: 8px; align-items: center; font-size: 13.5px; color: var(--muted); cursor: pointer; }
+  footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 48px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo"><div class="logo-badge">🎯</div>JobScope</div>
+    <div class="api-status"><span class="dot" id="apiDot"></span><span id="apiText">Checking API…</span></div>
+  </header>
+
+  <section class="hero">
+    <h1>Find the job that <span>actually fits you</span></h1>
+    <p>Ingest job postings, upload your resume, and let retrieval-augmented AI rank your best matches and answer your questions, grounded in real postings.</p>
+  </section>
+
+  <div class="grid">
+    <div class="card">
+      <h2><span class="step">1</span> Ingest job postings</h2>
+      <div class="sub">PDF, TXT, Markdown, or a JSON list of postings.</div>
+      <div class="drop" id="jobDrop"><strong>Click to browse</strong> or drag &amp; drop a file here</div>
+      <input type="file" id="jobFile" accept=".pdf,.txt,.md,.json" hidden />
+      <div class="meta-row">
+        <input type="text" id="jobTitle" placeholder="Title (optional)" />
+        <input type="text" id="jobCompany" placeholder="Company (optional)" />
+        <input type="text" id="jobLocation" placeholder="Location (optional)" />
+      </div>
+      <div class="row">
+        <button class="btn" id="ingestBtn"><span class="spinner"></span>Ingest posting(s)</button>
+        <span class="match-meta" id="jobFileName"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="step">2</span> Upload your resume</h2>
+      <div class="sub">PDF or plain text. Used to personalize answers and rank matches.</div>
+      <div class="drop" id="resumeDrop"><strong>Click to browse</strong> or drag &amp; drop your resume</div>
+      <input type="file" id="resumeFile" accept=".pdf,.txt,.md" hidden />
+      <div class="row">
+        <button class="btn" id="resumeBtn"><span class="spinner"></span>Upload resume</button>
+        <span class="match-meta" id="resumeFileName"></span>
+      </div>
+    </div>
+
+    <div class="card full">
+      <h2><span class="step">3</span> Ask anything</h2>
+      <div class="sub">Questions are answered using only the ingested postings (and your resume, if enabled).</div>
+      <textarea id="question" placeholder="e.g. Which jobs best match my Python and ML experience? What skills am I missing for the ML Engineer role?"></textarea>
+      <div class="row">
+        <button class="btn" id="askBtn"><span class="spinner"></span>Ask</button>
+        <label class="check"><input type="checkbox" id="useResume" checked /> Use my resume for context</label>
+      </div>
+      <div class="answer" id="answerBox"></div>
+      <div class="sources" id="sourcesBox"></div>
+    </div>
+
+    <div class="card full">
+      <h2><span class="step">4</span> Your best matches</h2>
+      <div class="sub">Ranked by semantic similarity between your resume and every posting.</div>
+      <div class="row">
+        <button class="btn" id="matchBtn"><span class="spinner"></span>Rank my matches</button>
+        <label class="check"><input type="checkbox" id="explain" /> Include AI explanations</label>
+        <label class="check">Top <input type="number" id="topK" value="5" min="1" max="20" style="width:64px" /></label>
+      </div>
+      <div class="matches" id="matchesBox"></div>
+    </div>
+  </div>
+
+  <footer>JobScope · Retrieval-Augmented Generation for job hunting · FastAPI · LangChain · Chroma</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let jobFileObj = null, resumeFileObj = null;
+
+function toast(msg, ok = true) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.className = "toast show " + (ok ? "ok" : "err");
+  setTimeout(() => t.classList.remove("show"), 3500);
+}
+
+function setBusy(btn, busy) { btn.classList.toggle("busy", busy); btn.disabled = busy; }
+
+function wireDrop(dropId, inputId, nameId, setter) {
+  const drop = $(dropId), input = $(inputId);
+  drop.addEventListener("click", () => input.click());
+  input.addEventListener("change", () => { setter(input.files[0]); $(nameId).textContent = input.files[0]?.name || ""; });
+  ["dragover", "dragleave", "drop"].forEach(ev =>
+    drop.addEventListener(ev, (e) => {
+      e.preventDefault();
+      drop.classList.toggle("drag", ev === "dragover");
+      if (ev === "drop" && e.dataTransfer.files[0]) {
+        setter(e.dataTransfer.files[0]);
+        $(nameId).textContent = e.dataTransfer.files[0].name;
+      }
+    })
+  );
+}
+wireDrop("jobDrop", "jobFile", "jobFileName", f => jobFileObj = f);
+wireDrop("resumeDrop", "resumeFile", "resumeFileName", f => resumeFileObj = f);
+
+async function api(path, options) {
+  const res = await fetch(path, options);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || res.statusText);
+  return data;
+}
+
+// Health check
+(async () => {
+  try {
+    await api("/health");
+    $("apiDot").classList.add("ok");
+    $("apiText").textContent = "API online";
+  } catch { $("apiText").textContent = "API unreachable"; }
+})();
+
+$("ingestBtn").addEventListener("click", async () => {
+  if (!jobFileObj) return toast("Choose a job postings file first", false);
+  const fd = new FormData();
+  fd.append("file", jobFileObj);
+  if ($("jobTitle").value) fd.append("title", $("jobTitle").value);
+  if ($("jobCompany").value) fd.append("company", $("jobCompany").value);
+  if ($("jobLocation").value) fd.append("location", $("jobLocation").value);
+  setBusy($("ingestBtn"), true);
+  try {
+    const r = await api("/ingest", { method: "POST", body: fd });
+    toast(`Ingested ${r.postings} posting(s) → ${r.chunks_indexed} chunks indexed`);
+  } catch (e) { toast(e.message, false); }
+  setBusy($("ingestBtn"), false);
+});
+
+$("resumeBtn").addEventListener("click", async () => {
+  if (!resumeFileObj) return toast("Choose a resume file first", false);
+  const fd = new FormData();
+  fd.append("file", resumeFileObj);
+  setBusy($("resumeBtn"), true);
+  try {
+    const r = await api("/resume", { method: "POST", body: fd });
+    toast(`Resume saved (${r.characters} characters)`);
+  } catch (e) { toast(e.message, false); }
+  setBusy($("resumeBtn"), false);
+});
+
+$("askBtn").addEventListener("click", async () => {
+  const q = $("question").value.trim();
+  if (!q) return toast("Type a question first", false);
+  setBusy($("askBtn"), true);
+  $("answerBox").style.display = "none";
+  $("sourcesBox").innerHTML = "";
+  try {
+    const r = await api("/query", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: q, use_resume: $("useResume").checked }),
+    });
+    $("answerBox").textContent = r.answer;
+    $("answerBox").style.display = "block";
+    $("sourcesBox").innerHTML = (r.sources || [])
+      .map(s => `<span class="chip">${s.title} · ${s.company}</span>`).join("");
+  } catch (e) { toast(e.message, false); }
+  setBusy($("askBtn"), false);
+});
+
+$("matchBtn").addEventListener("click", async () => {
+  setBusy($("matchBtn"), true);
+  $("matchesBox").innerHTML = "";
+  try {
+    const r = await api("/match", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ top_k: Number($("topK").value) || 5, explain: $("explain").checked }),
+    });
+    const matches = r.matches || [];
+    if (!matches.length) { toast("No matches found. Ingest some postings first.", false); }
+    const maxScore = Math.max(...matches.map(m => m.score), 1e-9);
+    $("matchesBox").innerHTML = matches.map((m, i) => {
+      const fit = Math.max(5, Math.round((1 - m.score / (maxScore * 1.15)) * 100));
+      return `<div class="match">
+        <div class="match-top">
+          <div><span class="match-title">${m.title}</span> <span class="match-meta">· ${m.company} · ${m.location}</span></div>
+          <span class="rank">#${i + 1} · ${fit}% fit</span>
+        </div>
+        <div class="bar"><i style="width:${fit}%"></i></div>
+        ${m.explanation ? `<div class="why">${m.explanation}</div>` : ""}
+      </div>`;
+    }).join("");
+  } catch (e) { toast(e.message, false); }
+  setBusy($("matchBtn"), false);
+});
+</script>
+</body>
+</html>

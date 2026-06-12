@@ -1,0 +1,20 @@
+[
+  {
+    "title": "Senior Python Engineer",
+    "company": "Acme Corp",
+    "location": "Remote",
+    "description": "We are looking for a senior Python engineer with experience in FastAPI, distributed systems and PostgreSQL. Bonus: machine learning pipelines and MLOps experience."
+  },
+  {
+    "title": "Machine Learning Engineer",
+    "company": "DataWorks",
+    "location": "Berlin, Germany",
+    "description": "Build and deploy ML models in production. Required: Python, PyTorch or TensorFlow, experience with vector databases and retrieval-augmented generation (RAG)."
+  },
+  {
+    "title": "Frontend Developer",
+    "company": "PixelSoft",
+    "location": "New York, USA",
+    "description": "React and TypeScript developer to build modern web applications. Experience with state management, accessibility and design systems required."
+  }
+]

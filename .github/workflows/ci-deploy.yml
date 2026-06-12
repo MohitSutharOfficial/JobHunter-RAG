@@ -1,0 +1,48 @@
+# CI + free deployment, used when this repo is cloned/mirrored to GitHub.
+#
+# Required GitHub repository settings (Settings > Secrets and variables > Actions):
+#   Secrets:   HF_TOKEN      - Hugging Face write token (free account)
+#   Variables: HF_USERNAME   - your Hugging Face username
+#              HF_SPACE      - (optional) Space name, defaults to job-hunting-rag
+
+name: CI & Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check .
+      - run: pytest -v
+        env:
+          USE_FAKE_EMBEDDINGS: "true"
+
+  deploy-huggingface:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Push to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: ${{ vars.HF_USERNAME }}
+          HF_SPACE: ${{ vars.HF_SPACE || 'job-hunting-rag' }}
+        run: |
+          if [ -z "$HF_TOKEN" ]; then
+            echo "HF_TOKEN secret not set - skipping deployment."
+            exit 0
+          fi
+          git push -f "https://hf:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE}" HEAD:main
