@@ -107,7 +107,8 @@ def _format_context(results: list[tuple[Document, float]]) -> str:
 
 
 def answer_question(
-    question: str, store: VectorStore, settings: Settings, resume_text: str = "", k: int | None = None
+    question: str, store: VectorStore, settings: Settings,
+    resume_text: str = "", k: int | None = None,
 ) -> Answer:
     """RAG answer: retrieve relevant postings and generate a grounded answer."""
     results = retrieve(question, store, k or settings.top_k)

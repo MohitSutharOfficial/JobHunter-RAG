@@ -3,6 +3,7 @@
 from dataclasses import asdict
 from functools import lru_cache
 from pathlib import Path
+from typing import Annotated
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.staticfiles import StaticFiles
@@ -10,7 +11,7 @@ from pydantic import BaseModel
 
 from job_rag.config import Settings, get_settings
 from job_rag.embeddings import get_embeddings
-from job_rag.ingestion import load_documents, ingest_documents
+from job_rag.ingestion import ingest_documents, load_documents
 from job_rag.retrieval import answer_question, explain_match, has_llm, rank_jobs
 from job_rag.vectorstore import get_vectorstore
 
@@ -46,10 +47,10 @@ def health() -> dict:
 
 @app.post("/ingest")
 async def ingest(
-    file: UploadFile = File(...),
-    title: str | None = Form(None),
-    company: str | None = Form(None),
-    location: str | None = Form(None),
+    file: Annotated[UploadFile, File(...)],
+    title: Annotated[str | None, Form()] = None,
+    company: Annotated[str | None, Form()] = None,
+    location: Annotated[str | None, Form()] = None,
 ) -> dict:
     settings = get_settings()
     data = await file.read()
@@ -64,7 +65,7 @@ async def ingest(
 
 
 @app.post("/resume")
-async def upload_resume(file: UploadFile = File(...)) -> dict:
+async def upload_resume(file: Annotated[UploadFile, File(...)]) -> dict:
     settings = get_settings()
     data = await file.read()
     filename = file.filename or "resume.txt"

@@ -2,7 +2,7 @@
 #
 # Required GitHub repository settings (Settings > Secrets and variables > Actions):
 #   Secrets:   HF_TOKEN      - Hugging Face write token (free account)
-#   Variables: HF_USERNAME   - your Hugging Face username
+#              HF_USERNAME   - your Hugging Face username
 #              HF_SPACE      - (optional) Space name, defaults to job-hunting-rag
 
 name: CI & Deploy
@@ -38,8 +38,8 @@ jobs:
       - name: Push to Hugging Face Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          HF_USERNAME: ${{ vars.HF_USERNAME }}
-          HF_SPACE: ${{ vars.HF_SPACE || 'job-hunting-rag' }}
+          HF_USERNAME: ${{ secrets.HF_USERNAME }}
+          HF_SPACE: ${{ secrets.HF_SPACE || 'job-hunting-rag' }}
         run: |
           if [ -z "$HF_TOKEN" ]; then
             echo "HF_TOKEN secret not set - skipping deployment."

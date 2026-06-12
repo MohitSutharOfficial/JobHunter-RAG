@@ -8,7 +8,10 @@ from job_rag.ingestion import ingest_documents, load_documents
 def test_load_json_postings():
     payload = json.dumps(
         [
-            {"title": "Python Dev", "company": "Acme", "location": "Remote", "description": "Build APIs."},
+            {
+                "title": "Python Dev", "company": "Acme",
+                "location": "Remote", "description": "Build APIs.",
+            },
             {"title": "ML Engineer", "company": "DataWorks", "description": "Train models."},
         ]
     ).encode()
