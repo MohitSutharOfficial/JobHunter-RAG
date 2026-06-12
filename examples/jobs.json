@@ -3,18 +3,30 @@
     "title": "Senior Python Engineer",
     "company": "Acme Corp",
     "location": "Remote",
-    "description": "We are looking for a senior Python engineer with experience in FastAPI, distributed systems and PostgreSQL. Bonus: machine learning pipelines and MLOps experience."
+    "description": "We are looking for a Senior Python Engineer to design and build scalable backend services. Requirements: 5+ years Python, FastAPI or Django, PostgreSQL, Redis, Docker, Kubernetes. Experience with distributed systems, CI/CD pipelines, and cloud platforms (AWS or GCP). Bonus: machine learning pipelines, MLOps, data engineering with Spark or Airflow."
   },
   {
     "title": "Machine Learning Engineer",
-    "company": "DataWorks",
+    "company": "DataWorks AI",
     "location": "Berlin, Germany",
-    "description": "Build and deploy ML models in production. Required: Python, PyTorch or TensorFlow, experience with vector databases and retrieval-augmented generation (RAG)."
+    "description": "Build and deploy ML models in production at scale. Required: Python, PyTorch or TensorFlow, scikit-learn, experience with vector databases (Chroma, Pinecone), and retrieval-augmented generation (RAG). Strong understanding of NLP, transformer architectures, and embedding models. Experience with LangChain, MLflow, and containerized deployments (Docker, Kubernetes)."
   },
   {
     "title": "Frontend Developer",
     "company": "PixelSoft",
     "location": "New York, USA",
-    "description": "React and TypeScript developer to build modern web applications. Experience with state management, accessibility and design systems required."
+    "description": "React and TypeScript developer to build modern, performant web applications. Experience with Next.js, state management (Redux/Zustand), accessibility (WCAG), and design systems. Familiarity with REST/GraphQL APIs, testing (Jest, Playwright), and CI/CD. Bonus: experience with Figma, CSS-in-JS, and performance optimization."
+  },
+  {
+    "title": "Full Stack Developer",
+    "company": "TechNova",
+    "location": "San Francisco, USA",
+    "description": "Join our team to build full-stack applications using Python (FastAPI) and React/TypeScript. Requirements: PostgreSQL, MongoDB, Redis, Docker, Git, CI/CD. Experience with cloud services (AWS Lambda, S3, CloudFront), authentication (OAuth2, JWT), and real-time features (WebSockets). Bonus: experience with microservices architecture and Terraform."
+  },
+  {
+    "title": "DevOps / SRE Engineer",
+    "company": "CloudScale Inc",
+    "location": "Remote (EU timezone)",
+    "description": "We need a DevOps/SRE engineer to manage our cloud infrastructure. Requirements: AWS or GCP, Terraform, Kubernetes, Docker, Helm, Prometheus, Grafana. Strong Linux skills, networking knowledge, and experience with CI/CD (GitHub Actions, GitLab CI). Scripting in Python or Bash. Experience with incident management and SLO/SLI frameworks."
   }
 ]

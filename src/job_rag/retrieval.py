@@ -12,6 +12,11 @@ in the context below to answer the question. If a resume is provided, tailor the
 answer to the candidate's experience. Cite job titles and companies explicitly.
 If the context does not contain the answer, say so.
 
+Format your response with clear structure:
+- Use **bold** for key job titles and company names
+- Use bullet points for listing multiple items
+- Be specific about skill matches when a resume is provided
+
 # Job postings context
 {context}
 
@@ -23,8 +28,13 @@ If the context does not contain the answer, say so.
 """
 
 EXPLAIN_PROMPT = """You are a career coach. Given the candidate resume and a job posting,
-explain in 2-3 sentences why this job is or is not a good match, naming concrete
-overlapping skills.
+provide a concise analysis in 2-3 sentences. Be specific about:
+1. Which candidate skills directly match the job requirements
+2. What skills or experience the candidate is missing
+3. An overall verdict (strong match / moderate match / weak match)
+
+Matched skills: {matched_skills}
+Missing skills: {missing_skills}
 
 # Resume
 {resume}
@@ -42,6 +52,10 @@ class JobMatch:
     score: float
     snippet: str
     explanation: str | None = None
+    matched_skills: list[str] = field(default_factory=list)
+    missing_skills: list[str] = field(default_factory=list)
+    extra_skills: list[str] = field(default_factory=list)
+    match_percent: int = 0
 
 
 @dataclass
@@ -55,13 +69,26 @@ def retrieve(query: str, store: VectorStore, k: int) -> list[tuple[Document, flo
     return store.similarity_search_with_score(query, k=k)
 
 
-def rank_jobs(resume_text: str, store: VectorStore, k: int) -> list[JobMatch]:
-    """Rank job postings against a resume using vector similarity.
+def rank_jobs(
+    resume_text: str, store: VectorStore, k: int,
+    resume_skills: list[str] | None = None,
+    settings: Settings | None = None,
+) -> list[JobMatch]:
+    """Rank job postings against a resume using vector similarity + skill overlap.
 
     Deduplicates chunks per (title, company), keeping each job's best score.
+    If resume_skills are provided, computes skill overlap per job.
     """
+    from job_rag.skills import (
+        compute_skill_overlap,
+        extract_skills_heuristic,
+        extract_skills_with_llm,
+    )
+
     results = retrieve(resume_text, store, k=max(k * 3, k))
     best: dict[tuple[str, str], JobMatch] = {}
+    job_texts: dict[tuple[str, str], str] = {}
+
     for doc, distance in results:
         meta = doc.metadata
         key = (meta.get("title", "Unknown"), meta.get("company", "Unknown"))
@@ -70,12 +97,34 @@ def rank_jobs(resume_text: str, store: VectorStore, k: int) -> list[JobMatch]:
             company=key[1],
             location=meta.get("location", "Unknown"),
             score=float(distance),
-            snippet=doc.page_content[:300],
+            snippet=doc.page_content[:500],
         )
         if key not in best or match.score < best[key].score:
             best[key] = match
-    ranked = sorted(best.values(), key=lambda m: m.score)
-    return ranked[:k]
+            job_texts[key] = doc.page_content
+
+    ranked = sorted(best.values(), key=lambda m: m.score)[:k]
+
+    # Skill overlap analysis
+    if resume_skills:
+        use_llm = settings and has_llm(settings)
+        llm = _get_llm(settings) if use_llm else None
+
+        for m in ranked:
+            key = (m.title, m.company)
+            job_text = job_texts.get(key, m.snippet)
+            if llm:
+                job_skills = extract_skills_with_llm(job_text, llm)
+            else:
+                job_skills = extract_skills_heuristic(job_text)
+
+            overlap = compute_skill_overlap(resume_skills, job_skills)
+            m.matched_skills = overlap["matched"]
+            m.missing_skills = overlap["missing"]
+            m.extra_skills = overlap["extra"]
+            m.match_percent = overlap["match_percent"]
+
+    return ranked
 
 
 def has_llm(settings: Settings) -> bool:
@@ -143,7 +192,9 @@ def answer_question(
     return Answer(answer=response.content, sources=sources)
 
 
-def explain_match(match: JobMatch, resume_text: str, settings: Settings) -> str:
+def explain_match(
+    match: JobMatch, resume_text: str, settings: Settings,
+) -> str:
     llm = _get_llm(settings)
     prompt = EXPLAIN_PROMPT.format(
         resume=resume_text,
@@ -151,5 +202,7 @@ def explain_match(match: JobMatch, resume_text: str, settings: Settings) -> str:
         company=match.company,
         location=match.location,
         description=match.snippet,
+        matched_skills=", ".join(match.matched_skills) or "none identified",
+        missing_skills=", ".join(match.missing_skills) or "none identified",
     )
     return llm.invoke(prompt).content
