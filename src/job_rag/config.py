@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     # Gemini: used for embeddings, and as LLM when no Groq key is set.
     google_api_key: str = ""
     gemini_model: str = "gemini-2.0-flash"
-    embedding_model: str = "models/text-embedding-004"
+    embedding_model: str = "gemini-embedding-001"
 
     chroma_dir: str = "./data/chroma"
     collection_name: str = "job_postings"

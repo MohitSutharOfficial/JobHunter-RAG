@@ -50,7 +50,7 @@ docker run -p 8000:8000 --env-file .env -v $(pwd)/data:/app/data job-rag
 | `GROQ_MODEL` | `llama-3.3-70b-versatile` | Groq chat model |
 | `GOOGLE_API_KEY` | _(empty)_ | Google AI Studio key (free at https://aistudio.google.com/apikey), used for embeddings and as fallback LLM |
 | `GEMINI_MODEL` | `gemini-2.0-flash` | Gemini chat model (fallback LLM) |
-| `EMBEDDING_MODEL` | `models/text-embedding-004` | Gemini embedding model |
+| `EMBEDDING_MODEL` | `gemini-embedding-001` | Gemini embedding model |
 | `CHROMA_DIR` | `./data/chroma` | Chroma persistence directory |
 | `COLLECTION_NAME` | `job_postings` | Chroma collection name |
 | `CHUNK_SIZE` | `800` | Chunk size (characters) |
